@@ -1,0 +1,53 @@
+package io.github.binaryfoo.cloudtail
+
+import com.github.salomonbrys.kotson.set
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
+import java.io.File
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.util.*
+import java.util.zip.GZIPOutputStream
+
+private val gson = GsonBuilder().setPrettyPrinting().create()
+
+fun main(args: Array<String>) {
+    val properties = loadProperties()
+    val connection = DriverManager.getConnection(properties.getProperty("jdbc.url"), properties)
+//    val query = "select * from sampledb.cloudtrail_logs where eventtime > '2017-03-24T03:30:00Z' and eventtime < '2017-03-24T03:40:00Z'"
+    val query = "select * from sampledb.cloudtrail_logs limit 1"
+    val resultSet = timed("Query") { connection.createStatement().executeQuery(query) }
+    val rowsRead = timed("Save") { save(resultSet) }
+    println("wrote $rowsRead rows")
+}
+
+private fun loadProperties(): Properties {
+    return File("connection.properties").reader().use { reader ->
+        Properties().apply { load(reader) }
+    }
+}
+
+private fun save(resultSet: ResultSet): Int {
+    var rowsRead = 0
+    GZIPOutputStream(File("tmp/temp.json.gz").outputStream()).bufferedWriter().use { out ->
+        val metaData = resultSet.metaData
+        val jsonObject = JsonObject()
+        while (resultSet.next()) {
+            (1..metaData.columnCount).forEach { col ->
+                jsonObject[metaData.getColumnName(col)] = resultSet.getString(col)
+            }
+            gson.toJson(jsonObject, out)
+            rowsRead += 1
+        }
+    }
+    return rowsRead
+}
+
+private fun <T> timed(name: String, block: () -> T): T {
+    println("Started $name")
+    val start = System.currentTimeMillis()
+    val result = block()
+    val elapsed = System.currentTimeMillis() - start
+    println("$name took ${elapsed}ms")
+    return result
+}

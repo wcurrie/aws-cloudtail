@@ -14,31 +14,41 @@ import java.util.zip.GZIPInputStream
 private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 fun main(args: Array<String>) {
-    val mapper = ObjectMapper()
     File("tmp/all.wsd").printWriter().use { out ->
-        File("tmp").listFiles().filter { it.name.endsWith(".gz") }.sorted().forEach { logFile ->
-            println(logFile.name)
-            // events within a file are not ordered
-            val events = ArrayList<CloudTrailEvent>()
-            GZIPInputStream(logFile.inputStream()).use { inputStream ->
-                val fullLogText = inputStream.reader().readText()
-                val jsonParser = mapper.factory.createParser(fullLogText)
-                val serializer = RawLogDeliveryEventSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
-                while (serializer.hasNextEvent()) {
-                    events.add(serializer.nextEvent)
-                }
-            }
-            events.sortBy { it.eventData.eventTime }
-            events.forEach { event ->
-                val server = event.eventData.eventSource
-                val client = event.eventData.sourceIPAddress
-                val time = LocalDateTime.ofInstant(event.eventData.eventTime.toInstant(), ZoneId.of("UTC"))
-                val userName = event.eventData.userIdentity.userName
-                val principalId = event.eventData.userIdentity.principalId
-                val eventMetadata = event.eventMetadata as LogDeliveryInfo
+        processEvents("tmp") { event ->
+            val server = event.eventData.eventSource
+            val client = event.eventData.sourceIPAddress
+            val time = LocalDateTime.ofInstant(event.eventData.eventTime.toInstant(), ZoneId.of("UTC"))
+            val userName = event.eventData.userIdentity.userName
+            val principalId = event.eventData.userIdentity.principalId
+            val eventMetadata = event.eventMetadata as LogDeliveryInfo
 
-                out.println("${TIME_FORMAT.format(time)}: $client -> $server ($userName/$principalId)")
-            }
+            out.println("${TIME_FORMAT.format(time)}: $client -> $server ($userName/$principalId)")
         }
     }
+}
+
+private val mapper = ObjectMapper()
+
+fun processEvents(directory: String, f: (CloudTrailEvent) -> Unit) {
+    File(directory).listFiles().filter { it.name.endsWith(".gz") }.sorted().forEach { logFile ->
+        println(logFile.name)
+        val events = parseEventsFrom(logFile)
+        // events within a file are not ordered
+        events.sortBy { it.eventData.eventTime }
+        events.forEach(f)
+    }
+}
+
+private fun parseEventsFrom(logFile: File): ArrayList<CloudTrailEvent> {
+    val events = ArrayList<CloudTrailEvent>()
+    GZIPInputStream(logFile.inputStream()).use { inputStream ->
+        val fullLogText = inputStream.reader().readText()
+        val jsonParser = mapper.factory.createParser(fullLogText)
+        val serializer = RawLogDeliveryEventSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
+        while (serializer.hasNextEvent()) {
+            events.add(serializer.nextEvent)
+        }
+    }
+    return events
 }

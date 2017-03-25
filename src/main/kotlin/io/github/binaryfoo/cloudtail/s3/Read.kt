@@ -38,10 +38,7 @@ fun main(args: Array<String>) {
 
     writeWebSequenceDiagram(wsdFile) { !exclude.containsMatchIn(it.rawEvent) && it.time >= start && it.time <= end}
 
-    val plantUml = SourceStringReader(wsdFile.readText())
-    File("tmp/trail.svg").outputStream().use { out ->
-        plantUml.generateImage(out, FileFormatOption(FileFormat.SVG))
-    }
+    drawSvgOfWsd(wsdFile)
 }
 
 private fun writeWebSequenceDiagram(wsdFile: File, include: EventFilter) {

@@ -1,12 +1,19 @@
 package io.github.binaryfoo.cloudtail.s3
 
+import net.sourceforge.plantuml.FileFormat
+import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.OptionFlags
 import net.sourceforge.plantuml.SourceStringReader
 import java.io.File
 
 fun main(args: Array<String>) {
     OptionFlags.getInstance().isVerbose = true
+    drawSvgOfWsd(File("tmp/all.wsd"))
+}
 
-    val plantUml = SourceStringReader(File("tmp/all.wsd").readText())
-    plantUml.generateImage(File("tmp/trail.png"))
+fun drawSvgOfWsd(wsdFile: File) {
+    val plantUml = SourceStringReader(wsdFile.readText())
+    File("tmp/trail.svg").outputStream().use { out ->
+        plantUml.generateImage(out, FileFormatOption(FileFormat.SVG))
+    }
 }

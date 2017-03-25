@@ -1,30 +1,24 @@
-package io.github.binaryfoo.cloudtail
+package io.github.binaryfoo.cloudtail.athena
 
 import com.github.salomonbrys.kotson.set
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import io.github.binaryfoo.cloudtail.propertiesFrom
 import java.io.File
 import java.sql.DriverManager
 import java.sql.ResultSet
-import java.util.*
 import java.util.zip.GZIPOutputStream
 
 private val gson = GsonBuilder().setPrettyPrinting().create()
 
 fun main(args: Array<String>) {
-    val properties = loadProperties()
+    val properties = propertiesFrom("connection.properties")
     val connection = DriverManager.getConnection(properties.getProperty("jdbc.url"), properties)
 //    val query = "select * from sampledb.cloudtrail_logs where eventtime > '2017-03-24T03:30:00Z' and eventtime < '2017-03-24T03:40:00Z'"
     val query = "select * from sampledb.cloudtrail_logs limit 1"
     val resultSet = timed("Query") { connection.createStatement().executeQuery(query) }
     val rowsRead = timed("Save") { save(resultSet) }
     println("wrote $rowsRead rows")
-}
-
-private fun loadProperties(): Properties {
-    return File("connection.properties").reader().use { reader ->
-        Properties().apply { load(reader) }
-    }
 }
 
 private fun save(resultSet: ResultSet): Int {

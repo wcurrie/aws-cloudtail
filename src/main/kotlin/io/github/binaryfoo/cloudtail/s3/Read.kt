@@ -5,13 +5,16 @@ import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog
 import com.amazonaws.services.cloudtrail.processinglibrary.model.LogDeliveryInfo
 import com.amazonaws.services.cloudtrail.processinglibrary.serializer.RawLogDeliveryEventSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.salomonbrys.kotson.*
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import io.github.binaryfoo.cloudtail.propertiesFrom
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.SourceStringReader
-import org.joda.time.Interval
 import java.io.File
-import java.time.*
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.zip.GZIPInputStream
@@ -49,8 +52,8 @@ private fun writeWebSequenceDiagram(wsdFile: File, include: EventFilter) {
             val server = quote(event.eventData.eventSource)
             val client = quote(event.eventData.sourceIPAddress)
             val userName = event.eventData.userIdentity.userName
-            val request = quote(compress(event.eventData.requestParameters))
-            val response = quote(compress(event.eventData.responseElements))
+            val request = formatJson(event.eventData.requestParameters)
+            val response = formatJson(event.eventData.responseElements)
 
             if (include(event)) {
                 val optionalUser = userName?.let { " ($it)" } ?: ""
@@ -64,21 +67,28 @@ private fun writeWebSequenceDiagram(wsdFile: File, include: EventFilter) {
     }
 }
 
-private val Sensitive = Regex("[\" -]")
-fun quote(json: String): String {
+private val Sensitive = Regex("[ -]")
+fun quote(s: String): String {
     // try to reduce noise by only quoting when required
-    return if (Sensitive.containsMatchIn(json)) {
-        '"' + json.replace("\"", "\\\"") + '"'
+    return if (Sensitive.containsMatchIn(s)) {
+        '"' + s + '"'
     } else {
-        json
+        s
     }
 }
 
-val SessionToken = Regex("\"sessionToken\":\"[^\"]+\"")
-
-fun compress(requestParameters: String?): String {
-    val request = requestParameters?:""
-    return request.replace(SessionToken, "\"sessionToken\":\"<token>\"")
+private val gson = GsonBuilder().setPrettyPrinting().create()
+fun formatJson(s: String?): String {
+    return (s?.let {
+        val json = gson.fromJson<JsonObject>(it)
+        if (json.contains("credentials")) {
+            val credentials = json["credentials"].asJsonObject
+            if (credentials.contains("sessionToken")) {
+                credentials["sessionToken"] = "<token>"
+            }
+        }
+        gson.toJson(json)
+    }?:"").replace("\n", "\\n") // plantuml wants one line with \n for newline
 }
 
 private val mapper = ObjectMapper()

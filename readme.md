@@ -8,6 +8,13 @@ Follow the AWS [instructions](http://docs.aws.amazon.com/awscloudtrail/latest/us
 You can use the watch-cloudtrail.template cloudformation template to create the log group and role. The use to update the trail (created manually).
 
     aws cloudtrail update-trail --name $trail_name --cloud-watch-logs-log-group-arn $log_group_arn --cloud-watch-logs-role-arn $role_arn
+    
+Run main() in CloudWatchRead.kt. From intellij or whatever.
+
+### TODO
+
+* handle pagination reading cloudwatch events responses
+* mouseover/click to show full event payload
 
 ## Alternative approach - Athena
 

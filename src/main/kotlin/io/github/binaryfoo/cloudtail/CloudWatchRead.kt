@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
     }.build()
 
     val fullEvents = File("tmp/events.json").printWriter()
-    val tenMinutesAgo = System.currentTimeMillis() - (10 * 60 * 1000)
+    val tenMinutesAgo = System.currentTimeMillis() - (30 * 60 * 1000)
     val observable = eventsSince(awsLogs, tenMinutesAgo).doAfterNext { fullEvents.println(it.rawEvent) }
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
@@ -37,7 +37,10 @@ fun main(args: Array<String>) {
 private fun eventsSince(awsLogs: AWSLogs, tenMinutesAgo: Long): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->
         val response = awsLogs.filterLogEvents(FilterLogEventsRequest().withLogGroupName("CloudTrail/logs").withStartTime(tenMinutesAgo))
-        // TODO handle pagination - response.nextToken
+        println("Received ${response.events.size} events")
+        if (response.nextToken != null) {
+            println("Response truncated because pagination not implemented. Next token: ${response.nextToken}")
+        }
         response.events.forEach { cloudWatchEvent ->
             parseEvents(cloudWatchEvent.message).forEach { cloudTrailEvent ->
                 subscriber.onNext(cloudTrailEvent)

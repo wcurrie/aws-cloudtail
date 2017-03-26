@@ -8,27 +8,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.salomonbrys.kotson.*
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import io.github.binaryfoo.cloudtail.propertiesFrom
-import net.sourceforge.plantuml.FileFormat
-import net.sourceforge.plantuml.FileFormatOption
-import net.sourceforge.plantuml.SourceStringReader
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.zip.GZIPInputStream
+import io.reactivex.Observable
 
-private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
-
-private typealias EventFilter = (CloudTrailEvent) -> Boolean
-
-private val CloudTrailEvent.rawEvent: String
-    get() = (this.eventMetadata as LogDeliveryInfo).rawEvent
-
-private val CloudTrailEvent.time: LocalDateTime
-    get() = LocalDateTime.ofInstant(this.eventData.eventTime.toInstant(), ZoneId.of("UTC"))
-
+/**
+ * Read cloudtrail logs from a set of downloaded .gz files.
+ */
 fun main(args: Array<String>) {
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
     val wsdFile = File("tmp/all.wsd")
@@ -36,15 +26,19 @@ fun main(args: Array<String>) {
     val start = LocalDateTime.of(2017, 3, 24, 3, 30, 0, 0)
     val end = start.plusMinutes(30)
 
-    writeWebSequenceDiagram(wsdFile) { !exclude.containsMatchIn(it.rawEvent) && it.time >= start && it.time <= end}
+    writeWebSequenceDiagram(processEvents("tmp"), wsdFile) { !exclude.containsMatchIn(it.rawEvent) && it.time >= start && it.time <= end }
 
     drawSvgOfWsd(wsdFile)
 }
 
-private fun writeWebSequenceDiagram(wsdFile: File, include: EventFilter) {
+private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
+
+private typealias EventFilter = (CloudTrailEvent) -> Boolean
+
+fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, wsdFile: File, include: EventFilter) {
     wsdFile.printWriter().use { out ->
         out.println("@startuml")
-        processEvents("tmp") { event ->
+        events.subscribe { event ->
             val eventName = event.eventData.eventName
             val server = quote(event.eventData.eventSource)
             val client = quote(event.eventData.sourceIPAddress)
@@ -85,30 +79,38 @@ fun formatJson(s: String?): String {
             }
         }
         gson.toJson(json)
-    }?:"").replace("\n", "\\n") // plantuml wants one line with \n for newline
+    } ?: "").replace("\n", "\\n") // plantuml wants one line with \n for newline
 }
 
-private val mapper = ObjectMapper()
-
-fun processEvents(directory: String, f: (CloudTrailEvent) -> Unit) {
-    File(directory).listFiles().filter { it.name.endsWith(".gz") }.sorted().forEach { logFile ->
-        println(logFile.name)
-        val events = parseEventsFrom(logFile)
-        // events within a file are not ordered
-        events.sortBy { it.eventData.eventTime }
-        events.forEach(f)
+fun processEvents(directory: String): Observable<CloudTrailEvent> {
+    return Observable.create { subscriber ->
+        File(directory).listFiles().filter { it.name.endsWith(".gz") }.sorted().forEach { logFile ->
+            println(logFile.name)
+            val events = parseEventsFrom(logFile)
+            // events within a file are not ordered
+            events.sortBy { it.eventData.eventTime }
+            events.forEach {
+                subscriber.onNext(it)
+            }
+            subscriber.onComplete()
+        }
     }
 }
 
 private fun parseEventsFrom(logFile: File): ArrayList<CloudTrailEvent> {
-    val events = ArrayList<CloudTrailEvent>()
     GZIPInputStream(logFile.inputStream()).use { inputStream ->
         val fullLogText = inputStream.reader().readText()
-        val jsonParser = mapper.factory.createParser(fullLogText)
-        val serializer = RawLogDeliveryEventSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
-        while (serializer.hasNextEvent()) {
-            events.add(serializer.nextEvent)
-        }
+        return parseEvents(fullLogText)
+    }
+}
+
+private val mapper = ObjectMapper()
+private fun parseEvents(fullLogText: String): ArrayList<CloudTrailEvent> {
+    val events = ArrayList<CloudTrailEvent>()
+    val jsonParser = mapper.factory.createParser(fullLogText)
+    val serializer = RawLogDeliveryEventSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
+    while (serializer.hasNextEvent()) {
+        events.add(serializer.nextEvent)
     }
     return events
 }

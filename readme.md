@@ -2,6 +2,13 @@
 
 As a sequence diagram. Using aws-cloudtrail-processing-library to read CloudTrail logs.
 
+### Instructions for tail -f style
+
+Follow the AWS [instructions](http://docs.aws.amazon.com/awscloudtrail/latest/userguide/send-cloudtrail-events-to-cloudwatch-logs.html) to enable CloudTrail to forward logs CloudWatch Logs.
+You can use the watch-cloudtrail.template cloudformation template to create the log group and role. The use to update the trail (created manually).
+
+    aws cloudtrail update-trail --name $trail_name --cloud-watch-logs-log-group-arn $log_group_arn --cloud-watch-logs-role-arn $role_arn
+
 ## Alternative approach - Athena
 
 Not currently used. AWS have a jdbc driver for Athena (SQL over content of s3 buckets).

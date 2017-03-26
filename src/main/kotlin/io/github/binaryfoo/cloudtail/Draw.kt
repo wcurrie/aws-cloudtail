@@ -12,9 +12,14 @@ fun main(args: Array<String>) {
     drawSvgOfWsd(File("tmp/all.wsd"))
 }
 
+/**
+ * Render a web (plantuml) sequence diagram as SVG embedded in html.
+ */
 fun drawSvgOfWsd(wsdFile: File) {
     val plantUml = SourceStringReader(wsdFile.readText())
-    File("tmp/trail.html").outputStream().use { out ->
+    val outputFile = File(wsdFile.parentFile, wsdFile.name.replace(".wsd", ".html"))
+    println("Rendering $wsdFile to $outputFile")
+    outputFile.outputStream().use { out ->
         val writer = PrintWriter(out)
         writer.println("""<html>
     <head>

@@ -3,6 +3,7 @@ package io.github.binaryfoo.cloudtail.writer
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
 import com.github.salomonbrys.kotson.contains
 import com.github.salomonbrys.kotson.fromJson
+import com.github.salomonbrys.kotson.keys
 import com.github.salomonbrys.kotson.set
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
@@ -73,7 +74,12 @@ fun formatJson(s: String?): String {
         if (json.contains("credentials")) {
             val credentials = json["credentials"].asJsonObject
             if (credentials.contains("sessionToken")) {
-                credentials["sessionToken"] = "SNIPPED"
+                credentials["sessionToken"] = "..."
+            }
+        }
+        json.keys().forEach { key ->
+            if (json[key].isJsonPrimitive && json[key].asString.length > 100) {
+                json[key] = json[key].asString.substring(0, 100) + "..."
             }
         }
         gson.toJson(json)

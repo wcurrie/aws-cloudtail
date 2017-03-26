@@ -8,6 +8,8 @@ import com.amazonaws.services.logs.AWSLogsClientBuilder
 import com.amazonaws.services.logs.model.FilterLogEventsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.binaryfoo.cloudtail.parser.HeaderlessCloudTrailSerializer
+import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
+import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
 import java.io.File
 import java.util.*

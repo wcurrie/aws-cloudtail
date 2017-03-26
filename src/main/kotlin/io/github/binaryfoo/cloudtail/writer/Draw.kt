@@ -1,4 +1,4 @@
-package io.github.binaryfoo.cloudtail
+package io.github.binaryfoo.cloudtail.writer
 
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption

@@ -22,12 +22,15 @@ fun main(args: Array<String>) {
         credentials = ProfileCredentialsProvider(properties.getProperty("profile"))
     }.build()
 
+    val fullEvents = File("tmp/events.json").printWriter()
     val tenMinutesAgo = System.currentTimeMillis() - (10 * 60 * 1000)
-    val observable = eventsSince(awsLogs, tenMinutesAgo)
+    val observable = eventsSince(awsLogs, tenMinutesAgo).doAfterNext { fullEvents.println(it.rawEvent) }
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
     val wsdFile = File("tmp/recent.wsd")
     writeWebSequenceDiagram(observable, wsdFile) { !exclude.containsMatchIn(it.rawEvent) }
+    fullEvents.close()
+
     drawSvgOfWsd(wsdFile)
 }
 

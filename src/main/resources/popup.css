@@ -1,0 +1,22 @@
+#popup {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 10%;
+    background: #fff;
+    width: 80%;
+    height: 80%;
+    z-index: 200;
+    border: 1px solid black;
+    overflow: scroll;
+}
+#popupclose {
+    float: right;
+    padding: 10px;
+    cursor: pointer;
+    font-weight: bolder;
+}
+#popupcontent {
+    padding: 10px;
+    white-space: pre;
+}

@@ -1,5 +1,12 @@
+## Visualize AWS CloudTrail logs
 
-## Instructions
+As a sequence diagram. Using aws-cloudtrail-processing-library to read CloudTrail logs.
+
+## Alternative approach - Athena
+
+Not currently used. AWS have a jdbc driver for Athena (SQL over content of s3 buckets).
+
+### Instructions
 
 Save Athena JDBC driver to lib/
 
@@ -7,7 +14,7 @@ Save Athena JDBC driver to lib/
     mvn install:install-file -Dfile=AthenaJDBC41-1.0.0.jar -DgroupId=aws.local \
         -DartifactId=athena-jdbc-driver -Dversion=1.0.0 -Dpackaging=jar
 
-## Resources
+### Resources
 
 * CloudTrail + Athena [blog post](https://aws.amazon.com/blogs/big-data/aws-cloudtrail-and-amazon-athena-dive-deep-to-analyze-security-compliance-and-operational-activity/)
 * [Athena JDBC Driver](http://docs.aws.amazon.com/athena/latest/ug/connect-with-jdbc.html)

@@ -20,10 +20,14 @@ fun main(args: Array<String>) {
     val wsdFile = File("tmp/all.wsd")
 
     val start = LocalDateTime.of(2017, 3, 24, 3, 0, 0, 0)
-    val end = start.plusMinutes(10)
+    val end = start.plusMinutes(60)
     println("From $start until $end")
 
-    writeWebSequenceDiagram(processEvents("tmp"), wsdFile) { !exclude.containsMatchIn(it.rawEvent) && it.time >= start && it.time <= end }
+    writeWebSequenceDiagram(processEvents("tmp"), wsdFile) {
+        !exclude.containsMatchIn(it.rawEvent)
+        && it.time >= start && it.time <= end
+        && it.eventData.sourceIPAddress != "codepipeline.amazonaws.com"
+    }
 
     drawSvgOfWsd(wsdFile)
 }

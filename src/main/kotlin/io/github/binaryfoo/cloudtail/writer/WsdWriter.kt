@@ -9,6 +9,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import io.github.binaryfoo.cloudtail.rawEvent
 import io.github.binaryfoo.cloudtail.time
+import io.github.binaryfoo.cloudtail.userIdentity
 import io.reactivex.Observable
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption
@@ -21,7 +22,7 @@ private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 private typealias EventFilter = (CloudTrailEvent) -> Boolean
 
-fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, wsdFile: File, include: EventFilter) {
+fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, wsdFile: File, labelArrows: Boolean = false, include: EventFilter) {
     val rawMsgsFile = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))
     val rawMsgWriter = rawMsgsFile.printWriter()
     rawMsgWriter.print("var rawMsgs = [")
@@ -33,16 +34,16 @@ fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, wsdFile: File, 
             val eventName = event.eventData.eventName
             val server = quote(event.eventData.eventSource)
             val client = quote(event.eventData.sourceIPAddress)
-            val userName = event.eventData.userIdentity.userName
-            val request = formatJson(event.eventData.requestParameters)
-            val response = formatJson(event.eventData.responseElements)
+            val userName = event.userIdentity
+            val request = if (labelArrows) formatJson(event.eventData.requestParameters) else ""
+            val response = if (labelArrows) formatJson(event.eventData.responseElements) else ""
 
             if (include(event)) {
                 val optionalUser = userName?.let { " ($it)" } ?: ""
                 val formattedTime = TIME_FORMAT.format(event.time)
                 val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
                 out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
-                if (response != "") {
+                if (labelArrows && response != "") {
                     out.println("$client <-- $server: $response")
                 }
                 rawMsgWriter.print(event.rawEvent)

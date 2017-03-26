@@ -75,7 +75,7 @@ fun formatJson(s: String?): String {
         if (json.contains("credentials")) {
             val credentials = json["credentials"].asJsonObject
             if (credentials.contains("sessionToken")) {
-                credentials["sessionToken"] = "<token>"
+                credentials["sessionToken"] = "SNIPPED"
             }
         }
         gson.toJson(json)

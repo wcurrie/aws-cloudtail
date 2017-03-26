@@ -1,4 +1,4 @@
-package io.github.binaryfoo.cloudtail.s3
+package io.github.binaryfoo.cloudtail
 
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog

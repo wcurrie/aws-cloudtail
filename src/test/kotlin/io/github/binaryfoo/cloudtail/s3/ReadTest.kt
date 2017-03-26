@@ -1,5 +1,6 @@
 package io.github.binaryfoo.cloudtail.s3
 
+import io.github.binaryfoo.cloudtail.quote
 import org.junit.Assert.*
 import org.junit.Test
 

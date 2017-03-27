@@ -1,6 +1,5 @@
 package io.github.binaryfoo.cloudtail
 
-import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog
 import com.amazonaws.services.logs.AWSLogs
@@ -19,10 +18,7 @@ import java.util.*
  * Requires cloudtrail to be forwarding logs to cloudwatch.
  */
 fun main(args: Array<String>) {
-    val properties = propertiesFrom("config.properties")
-    val awsLogs = AWSLogsClientBuilder.standard().apply {
-        credentials = ProfileCredentialsProvider(properties.getProperty("profile"))
-    }.build()
+    val awsLogs = AWSLogsClientBuilder.defaultClient()
 
     val fullEvents = File("tmp/events.json").printWriter()
     val tenMinutesAgo = System.currentTimeMillis() - (30 * 60 * 1000)

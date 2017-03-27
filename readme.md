@@ -13,6 +13,14 @@ If you prefer to do enable cloudtrail to cloudwatch using terraform, threatstack
     
 Run main() in CloudWatchRead.kt. From intellij or whatever.
 
+### config.properties
+
+Should look like:
+
+    bucket_name=<name of bucket cloudtrail is writing logs to>
+    key_prefix=Eg: AWSLogs/123456789012/CloudTrail/us-west-2/2017/02/01/
+    exclusion_regex=Eg: SomeService|10\\.0\\.0\\.42
+
 ### TODO
 
 * handle pagination reading cloudwatch events responses

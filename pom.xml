@@ -23,11 +23,6 @@
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
-            <groupId>aws.local</groupId>
-            <artifactId>athena-jdbc-driver</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-cloudtrail-processing-library</artifactId>
             <version>1.0.4</version>

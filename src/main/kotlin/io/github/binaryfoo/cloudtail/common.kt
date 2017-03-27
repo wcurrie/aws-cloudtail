@@ -26,6 +26,10 @@ val CloudTrailEvent.userIdentity: String?
         return null
     }
 
+fun CloudTrailEvent.involves(actor: String): Boolean {
+    return eventData.sourceIPAddress == actor || eventData.eventSource == actor
+}
+
 fun propertiesFrom(fileName: String): Properties {
     return File(fileName).reader().use { reader ->
         Properties().apply { load(reader) }

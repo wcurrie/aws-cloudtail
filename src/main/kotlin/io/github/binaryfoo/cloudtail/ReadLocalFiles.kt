@@ -25,8 +25,8 @@ fun main(args: Array<String>) {
 
     writeWebSequenceDiagram(processEvents("tmp"), wsdFile) {
         !exclude.containsMatchIn(it.rawEvent)
-        && it.time >= start && it.time <= end
-        && it.eventData.sourceIPAddress != "codepipeline.amazonaws.com"
+//        && it.time >= start && it.time <= end
+        && it.involves("cloudformation.amazonaws.com")
     }
 
     drawSvgOfWsd(wsdFile)

@@ -3,6 +3,9 @@ function showRawMsg(index) {
   var msg = rawMsgs[index];
   document.getElementById("popupcontent").textContent = JSON.stringify(msg, null, "  ");
   document.getElementById("popup").style.display = 'block';
+  if (hljs) {
+    hljs.highlightBlock(document.getElementById("popupcontent"))
+  }
 }
 
 document.getElementById("popupclose").onclick = function() {

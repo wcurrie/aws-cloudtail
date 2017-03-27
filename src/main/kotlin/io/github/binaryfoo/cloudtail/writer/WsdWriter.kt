@@ -100,9 +100,11 @@ fun drawSvgOfWsd(wsdFile: File) {
         val writer = PrintWriter(out)
         writer.println("""<html>
     <head>
-        <script type="text/javascript"">${readResource("scroll-header.js")}</script>
-        <script type="text/javascript"">${rawMsgsFile.readText()}</script>
         <style>${readResource("popup.css")}</style>
+        <style>${readResource("highlightjs.default.min.css")}</style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+        <script type="text/javascript">${readResource("scroll-header.js")}</script>
+        <script type="text/javascript">${rawMsgsFile.readText()}</script>
     <head>
     <body>
 """)
@@ -114,10 +116,12 @@ fun drawSvgOfWsd(wsdFile: File) {
             <div class="popupcontrols">
                 <span id="popupclose">X</span>
             </div>
-            <div id="popupcontent">
-            </div>
+            <pre>
+                <code id="popupcontent" class="hljs json">
+                </code>
+            </pre>
         </div>
-        <script type="text/javascript"">${readResource("show-raw-msg.js")}</script>
+        <script type="text/javascript">${readResource("show-raw-msg.js")}</script>
     </body>
 </html>
 """)
@@ -125,6 +129,6 @@ fun drawSvgOfWsd(wsdFile: File) {
     }
 }
 
-private fun readResource(fileName: String): String {
+fun readResource(fileName: String): String {
     return Thread.currentThread().contextClassLoader.getResourceAsStream(fileName).reader().readText()
 }

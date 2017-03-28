@@ -26,6 +26,17 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-cloudtrail-processing-library</artifactId>
             <version>1.0.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.amazonaws</groupId>
+                    <artifactId>aws-java-sdk</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.39</version>
         </dependency>
         <dependency>
             <groupId>com.github.salomonbrys.kotson</groupId>

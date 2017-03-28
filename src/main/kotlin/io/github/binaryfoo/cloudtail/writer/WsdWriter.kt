@@ -100,7 +100,7 @@ fun drawSvgOfWsd(wsdFile: File) {
         val writer = PrintWriter(out)
         writer.println("""<html>
     <head>
-        <style>${readResource("popup.css")}</style>
+        <style>${readResource("main.css")}</style>
         <style>${readResource("highlightjs.default.min.css")}</style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
         <script type="text/javascript">${readResource("scroll-header.js")}</script>
@@ -113,13 +113,9 @@ fun drawSvgOfWsd(wsdFile: File) {
         out.flush()
         writer.println("""
         <div id="popup">
-            <div class="popupcontrols">
-                <span id="popupclose">X</span>
-            </div>
-            <pre>
-                <code id="popupcontent" class="hljs json">
-                </code>
-            </pre>
+            <span id="popupclose">X</span>
+            <code id="popupcontent" class="hljs json">
+            </code>
         </div>
         <script type="text/javascript">${readResource("show-raw-msg.js")}</script>
     </body>

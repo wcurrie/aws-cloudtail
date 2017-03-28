@@ -24,4 +24,4 @@ Should look like:
 ### TODO
 
 * handle pagination reading cloudwatch events responses
-* mouseover/click to show full event payload
+* package as deployable (docker/lambda?)

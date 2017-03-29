@@ -21,8 +21,9 @@ fun main(args: Array<String>) {
     val awsLogs = AWSLogsClientBuilder.defaultClient()
 
     val fullEvents = File("tmp/events.json").printWriter()
-    val tenMinutesAgo = System.currentTimeMillis() - (30 * 60 * 1000)
-    val observable = eventsSince(awsLogs, tenMinutesAgo).doAfterNext { fullEvents.println(it.rawEvent) }
+    val since = System.currentTimeMillis() - (13 * 60 * 60 * 1000)
+    val until = since + (60 * 60 * 1000)
+    val observable = eventsSince(awsLogs, since, until).doAfterNext { fullEvents.println(it.rawEvent) }
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
     val wsdFile = File("tmp/recent.wsd")
@@ -32,18 +33,23 @@ fun main(args: Array<String>) {
     drawSvgOfWsd(wsdFile)
 }
 
-private fun eventsSince(awsLogs: AWSLogs, tenMinutesAgo: Long): Observable<CloudTrailEvent> {
+private fun eventsSince(awsLogs: AWSLogs, tenMinutesAgo: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->
-        val response = awsLogs.filterLogEvents(FilterLogEventsRequest().withLogGroupName("CloudTrail/logs").withStartTime(tenMinutesAgo))
-        println("Received ${response.events.size} events")
-        if (response.nextToken != null) {
-            println("Response truncated because pagination not implemented. Next token: ${response.nextToken}")
-        }
-        response.events.forEach { cloudWatchEvent ->
-            parseEvents(cloudWatchEvent.message).forEach { cloudTrailEvent ->
-                subscriber.onNext(cloudTrailEvent)
+        val request = FilterLogEventsRequest()
+                .withLogGroupName("CloudTrail/logs")
+                .withFilterPattern("cloudformation")
+                .withStartTime(tenMinutesAgo)
+                .withEndTime(untilTime)
+        do {
+            val response = awsLogs.filterLogEvents(request)
+            println("Received ${response.events.size} events nextToken ${response.nextToken}")
+            response.events.forEach { cloudWatchEvent ->
+                parseEvents(cloudWatchEvent.message).forEach { cloudTrailEvent ->
+                    subscriber.onNext(cloudTrailEvent)
+                }
             }
-        }
+            request.nextToken = response.nextToken
+        } while (response.nextToken != null)
         subscriber.onComplete()
     }
 }

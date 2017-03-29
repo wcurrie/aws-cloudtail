@@ -23,5 +23,6 @@ Should look like:
 
 ### TODO
 
-* handle pagination reading cloudwatch events responses
 * package as deployable (docker/lambda?)
+    - [IAM auth with api gateway](https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/)
+    - Max response size 10mb [limits](http://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html). Need 302 redirection to s3 object? 

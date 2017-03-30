@@ -3,9 +3,12 @@ package io.github.binaryfoo.cloudtail.spark
 import io.github.binaryfoo.cloudtail.drawEvents
 import io.github.binaryfoo.cloudtail.writer.Diagram
 import spark.Spark.get
+import spark.Spark.staticFileLocation
 import java.io.File
 
 fun main(args: Array<String>) {
+    staticFileLocation("/public")
+
     get("/draw") { req, res ->
         val from = req.queryParams("from")?.let(String::toLong)?:(System.currentTimeMillis()-(10*60*1000))
         val to = req.queryParams("to")?.let(String::toLong)?:(System.currentTimeMillis())

@@ -31,7 +31,13 @@ fun CloudTrailEvent.involves(actor: String): Boolean {
 }
 
 fun propertiesFrom(fileName: String): Properties {
-    return File(fileName).reader().use { reader ->
+    val file = File(fileName)
+    val fileReader = if (file.exists())
+        file.reader()
+    else
+        Thread.currentThread().contextClassLoader.getResourceAsStream(fileName).reader()
+
+    return fileReader.use { reader ->
         Properties().apply { load(reader) }
     }
 }

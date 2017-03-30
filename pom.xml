@@ -49,6 +49,11 @@
             <version>1.11.39</version>
         </dependency>
         <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-logs</artifactId>
+            <version>1.11.39</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.salomonbrys.kotson</groupId>
             <artifactId>kotson</artifactId>
             <version>2.5.0</version>
@@ -138,12 +143,14 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.eclipse.jetty.websocket:*</exclude>
-                                    <exclude>commons-fileupload:commons-fileupload</exclude>
-                                </excludes>
-                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>com.amazonaws:aws-cloudtrail-processing-library</artifact>
+                                    <includes>
+                                        <include>com/amazonaws/services/cloudtrail/processinglibrary/**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

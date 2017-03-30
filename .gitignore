@@ -3,3 +3,4 @@
 tmp/
 connection.properties
 config.properties
+serverless-output.yaml

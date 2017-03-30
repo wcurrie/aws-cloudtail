@@ -9,8 +9,10 @@ Resources:
       Runtime: java8
       CodeUri: target/aws-cloudtail-1.0-SNAPSHOT.jar
       MemorySize: 512
-      Policies: AWSLambdaBasicExecutionRole
-      Timeout: 20
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - CloudWatchLogsReadOnlyAccess
+      Timeout: 120
       Events:
         GetResource:
           Type: Api

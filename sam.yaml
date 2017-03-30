@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: CloudTail with spark with the aws-serverless-java-container library
+Resources:
+  CloudTailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: io.github.binaryfoo.cloudtail.lambda.LambdaHandler::handleRequest
+      Runtime: java8
+      CodeUri: target/aws-cloudtail-1.0-SNAPSHOT.jar
+      MemorySize: 512
+      Policies: AWSLambdaBasicExecutionRole
+      Timeout: 20
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+
+Outputs:
+  CloudTailApi:
+    Description: URL for application
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/draw'
+    Export:
+      Name: CloudTailApi

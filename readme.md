@@ -21,6 +21,22 @@ Should look like:
     key_prefix=Eg: AWSLogs/123456789012/CloudTrail/us-west-2/2017/02/01/
     exclusion_regex=Eg: SomeService|10\\.0\\.0\\.42
 
+## Deploying as a Lambda
+
+Following [serverless deploy](http://docs.aws.amazon.com/lambda/latest/dg/serverless-deploy-wt.html#serverless-deploy):
+
+    aws s3 mb s3://bucket-name --region region
+    
+    aws cloudformation package \
+       --template-file sam.yaml \
+       --output-template-file serverless-output.yaml \
+       --s3-bucket s3-bucket-name
+       
+    aws cloudformation deploy \
+      --template-file serverless-output.yaml \
+      --stack-name new-stack-name \
+      --capabilities CAPABILITY_IAM
+
 ### TODO
 
 * package as deployable (docker/lambda?)

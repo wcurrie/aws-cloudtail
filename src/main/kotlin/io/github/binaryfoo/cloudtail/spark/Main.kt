@@ -7,11 +7,15 @@ import spark.Spark.staticFileLocation
 import java.io.File
 
 fun main(args: Array<String>) {
+    defineResources()
+}
+
+fun defineResources() {
     staticFileLocation("/public")
 
     get("/draw") { req, res ->
-        val from = req.queryParams("from")?.let(String::toLong)?:(System.currentTimeMillis()-(10*60*1000))
-        val to = req.queryParams("to")?.let(String::toLong)?:(System.currentTimeMillis())
+        val from = req.queryParams("from")?.let(String::toLong) ?: (System.currentTimeMillis() - (10 * 60 * 1000))
+        val to = req.queryParams("to")?.let(String::toLong) ?: (System.currentTimeMillis())
         val diagram = Diagram(tempFile("events", ".wsd"))
 
         drawEvents(diagram, from, to)

@@ -4,6 +4,7 @@ import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog
 import com.amazonaws.services.cloudtrail.processinglibrary.serializer.RawLogDeliveryEventSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.binaryfoo.cloudtail.writer.Diagram
 import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
@@ -17,19 +18,19 @@ import java.util.zip.GZIPInputStream
  */
 fun main(args: Array<String>) {
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
-    val wsdFile = File("tmp/all.wsd")
+    val diagram = Diagram(File("tmp/all.wsd"))
 
     val start = LocalDateTime.of(2017, 3, 24, 3, 0, 0, 0)
     val end = start.plusMinutes(60)
     println("From $start until $end")
 
-    writeWebSequenceDiagram(processEvents("tmp"), wsdFile) {
+    writeWebSequenceDiagram(processEvents("tmp"), diagram) {
         !exclude.containsMatchIn(it.rawEvent)
 //        && it.time >= start && it.time <= end
         && it.involves("cloudformation.amazonaws.com")
     }
 
-    drawSvgOfWsd(wsdFile)
+    drawSvgOfWsd(diagram)
 }
 
 fun processEvents(directory: String): Observable<CloudTrailEvent> {

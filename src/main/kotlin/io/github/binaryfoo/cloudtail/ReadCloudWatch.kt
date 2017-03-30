@@ -7,6 +7,7 @@ import com.amazonaws.services.logs.AWSLogsClientBuilder
 import com.amazonaws.services.logs.model.FilterLogEventsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.binaryfoo.cloudtail.parser.HeaderlessCloudTrailSerializer
+import io.github.binaryfoo.cloudtail.writer.Diagram
 import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
@@ -18,27 +19,27 @@ import java.util.*
  * Requires cloudtrail to be forwarding logs to cloudwatch.
  */
 fun main(args: Array<String>) {
-    val awsLogs = AWSLogsClientBuilder.defaultClient()
-
-    val fullEvents = File("tmp/events.json").printWriter()
-    val since = System.currentTimeMillis() - (13 * 60 * 60 * 1000)
-    val until = since + (60 * 60 * 1000)
-    val observable = eventsSince(awsLogs, since, until).doAfterNext { fullEvents.println(it.rawEvent) }
-    val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
-
     val wsdFile = File("tmp/recent.wsd")
-    writeWebSequenceDiagram(observable, wsdFile) { !exclude.containsMatchIn(it.rawEvent) }
-    fullEvents.close()
+    val since = System.currentTimeMillis() - (60 * 60 * 1000)
+    val until = since + (60 * 60 * 1000)
 
-    drawSvgOfWsd(wsdFile)
+    drawEvents(Diagram(wsdFile), since, until)
 }
 
-private fun eventsSince(awsLogs: AWSLogs, tenMinutesAgo: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
+fun drawEvents(diagram: Diagram, since: Long, until: Long) {
+    val awsLogs = AWSLogsClientBuilder.defaultClient()
+    val observable = eventsSince(awsLogs, since, until)
+    val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
+
+    writeWebSequenceDiagram(observable, diagram) { !exclude.containsMatchIn(it.rawEvent) }
+    drawSvgOfWsd(diagram)
+}
+
+private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->
         val request = FilterLogEventsRequest()
                 .withLogGroupName("CloudTrail/logs")
-                .withFilterPattern("cloudformation")
-                .withStartTime(tenMinutesAgo)
+                .withStartTime(fromTime)
                 .withEndTime(untilTime)
         do {
             val response = awsLogs.filterLogEvents(request)

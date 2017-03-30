@@ -5,5 +5,5 @@ import java.io.File
 
 fun main(args: Array<String>) {
     OptionFlags.getInstance().isVerbose = true
-    drawSvgOfWsd(File("tmp/all.wsd"))
+    drawSvgOfWsd(Diagram(File("tmp/all.wsd")))
 }

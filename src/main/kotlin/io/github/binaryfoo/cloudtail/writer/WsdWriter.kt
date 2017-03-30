@@ -22,13 +22,24 @@ private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 private typealias EventFilter = (CloudTrailEvent) -> Boolean
 
-fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, wsdFile: File, labelArrows: Boolean = false, include: EventFilter) {
-    val rawMsgsFile = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))
+data class Diagram(val wsdFile: File) {
+    val events = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))
+    val html   = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".html"))
+
+    fun delete() {
+        wsdFile.delete()
+        events.delete()
+        html.delete()
+    }
+}
+
+fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagram, labelArrows: Boolean = false, include: EventFilter) {
+    val rawMsgsFile = diagram.events
     val rawMsgWriter = rawMsgsFile.printWriter()
     rawMsgWriter.print("var rawMsgs = [")
     var rawIndex = 0
 
-    wsdFile.printWriter().use { out ->
+    diagram.wsdFile.printWriter().use { out ->
         out.println("@startuml")
         events.subscribe { event ->
             val eventName = event.eventData.eventName
@@ -91,11 +102,11 @@ fun formatJson(s: String?): String {
 /**
  * Render a web (plantuml) sequence diagram as SVG embedded in html.
  */
-fun drawSvgOfWsd(wsdFile: File) {
-    val plantUml = SourceStringReader(wsdFile.readText())
-    val outputFile = File(wsdFile.parentFile, wsdFile.name.replace(".wsd", ".html"))
-    val rawMsgsFile = File(wsdFile.parentFile, wsdFile.name.replace(".wsd", ".json"))
-    println("Rendering $wsdFile to $outputFile")
+fun drawSvgOfWsd(diagram: Diagram) {
+    val plantUml = SourceStringReader(diagram.wsdFile.readText())
+    val outputFile = diagram.html
+    val rawMsgsFile = diagram.events
+    println("Rendering ${diagram.wsdFile} to $outputFile")
     outputFile.outputStream().use { out ->
         val writer = PrintWriter(out)
         writer.println("""<html>

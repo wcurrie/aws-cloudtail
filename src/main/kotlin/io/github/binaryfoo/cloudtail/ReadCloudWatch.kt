@@ -46,11 +46,13 @@ private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = nul
             println("Received ${response.events.size} events nextToken ${response.nextToken}")
             response.events.forEach { cloudWatchEvent ->
                 parseEvents(cloudWatchEvent.message).forEach { cloudTrailEvent ->
-                    subscriber.onNext(cloudTrailEvent)
+                    if (!subscriber.isDisposed) {
+                        subscriber.onNext(cloudTrailEvent)
+                    }
                 }
             }
             request.nextToken = response.nextToken
-        } while (response.nextToken != null)
+        } while (response.nextToken != null && !subscriber.isDisposed)
         subscriber.onComplete()
     }
 }

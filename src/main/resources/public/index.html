@@ -3,14 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <title>CloudTail</title>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/jquery/1/jquery.min.js"></script>
+    <script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
+    <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+    <style>
+        #daterange {
+            width: 30em;
+        }
+    </style>
 </head>
 <body>
 
-<form action="/draw">
-    <label for="fromTime">From (millis): </label> <input type="text" name="from" id="fromTime">
-    <label for="toTime">To (millis):</label> <input type="text" name="to" id="toTime">
+<form action="/range">
+    <label for="daterange">Period: </label> <input type="text" name="daterange" id="daterange">
+    <label for="limit">Max Count: </label> <input type="text" name="limit" id="limit" value="2000">
     <input type="submit" value="Go">
 </form>
+
+<script type="text/javascript">
+  $(function() {
+    $('input[name="daterange"]').daterangepicker({
+      timePicker: true,
+      timePickerIncrement: 5,
+      locale: {
+        format: 'YYYY/MM/DD h:mm A Z'
+      }
+    });
+  });
+</script>
 
 </body>
 </html>

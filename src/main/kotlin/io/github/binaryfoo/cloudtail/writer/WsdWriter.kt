@@ -11,6 +11,8 @@ import io.github.binaryfoo.cloudtail.rawEvent
 import io.github.binaryfoo.cloudtail.time
 import io.github.binaryfoo.cloudtail.userIdentity
 import io.reactivex.Observable
+import io.reactivex.Observer
+import io.reactivex.disposables.Disposable
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.SourceStringReader
@@ -22,7 +24,7 @@ private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
 
 private typealias EventFilter = (CloudTrailEvent) -> Boolean
 
-data class Diagram(val wsdFile: File) {
+data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE) {
     val events = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))
     val html   = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".html"))
 
@@ -37,36 +39,61 @@ fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagra
     val rawMsgsFile = diagram.events
     val rawMsgWriter = rawMsgsFile.printWriter()
     rawMsgWriter.print("var rawMsgs = [")
-    var rawIndex = 0
 
     diagram.wsdFile.printWriter().use { out ->
         out.println("@startuml")
-        events.subscribe { event ->
+        events.subscribe(EventWriter(out, rawMsgWriter, labelArrows, diagram.maxEvents, include))
+        out.println("@enduml")
+    }
+
+    rawMsgWriter.println("];")
+    rawMsgWriter.close()
+}
+
+private class EventWriter(val out: PrintWriter,
+                          val rawMsgWriter: PrintWriter,
+                          val labelArrows: Boolean,
+                          val maxEvents: Int,
+                          val include: EventFilter) : Observer<CloudTrailEvent> {
+
+    private var stopHandle: Disposable? = null
+    private var rawIndex = 0
+
+    override fun onNext(event: CloudTrailEvent) {
+        if (include(event)) {
             val eventName = event.eventData.eventName
             val server = quote(event.eventData.eventSource)
             val client = quote(event.eventData.sourceIPAddress)
             val userName = event.userIdentity
             val request = if (labelArrows) formatJson(event.eventData.requestParameters) else ""
             val response = if (labelArrows) formatJson(event.eventData.responseElements) else ""
-
-            if (include(event)) {
-                val optionalUser = userName?.let { " ($it)" } ?: ""
-                val formattedTime = TIME_FORMAT.format(event.time)
-                val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
-                out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
-                if (labelArrows && response != "") {
-                    out.println("$client <-- $server: $response")
-                }
-                rawMsgWriter.print(event.rawEvent)
-                rawMsgWriter.println(",")
-                rawIndex += 1
+            val optionalUser = userName?.let { " ($it)" } ?: ""
+            val formattedTime = TIME_FORMAT.format(event.time)
+            val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
+            out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
+            if (labelArrows && response != "") {
+                out.println("$client <-- $server: $response")
+            }
+            rawMsgWriter.print(event.rawEvent)
+            rawMsgWriter.println(",")
+            rawIndex += 1
+            if (rawIndex > maxEvents) {
+                println("Stopping because written $rawIndex > $maxEvents")
+                stopHandle?.dispose()
             }
         }
-        out.println("@enduml")
     }
 
-    rawMsgWriter.println("];")
-    rawMsgWriter.close()
+    override fun onSubscribe(d: Disposable?) {
+        stopHandle = d
+    }
+
+    override fun onComplete() {
+    }
+
+    override fun onError(e: Throwable?) {
+    }
+
 }
 
 private val Sensitive = Regex("[ -]")

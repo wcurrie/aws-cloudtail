@@ -4,7 +4,7 @@ As a sequence diagram. Using aws-cloudtrail-processing-library to read CloudTrai
 
 Pretty boring example of CodePipeline polling CodeCommit to see if anything has changed. Perhaps implies KMS envelope encryption is used for each commit.
 
-![Example: CodePipeline polling CodeCommit][https://github.com/wcurrie/aws-cloudtail/blob/master/examples/codepipeline-polling-codecommit.png]
+![Example - CodePipeline polling CodeCommit](https://github.com/wcurrie/aws-cloudtail/blob/master/examples/codepipeline-polling-codecommit.png)
 
 ### Instructions for tail -f style
 

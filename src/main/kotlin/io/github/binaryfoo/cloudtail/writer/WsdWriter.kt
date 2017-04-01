@@ -16,6 +16,7 @@ import io.reactivex.disposables.Disposable
 import net.sourceforge.plantuml.FileFormat
 import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.SourceStringReader
+import net.sourceforge.plantuml.sequencediagram.DiagramPositionsCollector
 import java.io.File
 import java.io.PrintWriter
 import java.time.ZoneId
@@ -151,6 +152,7 @@ fun drawSvgOfWsd(diagram: Diagram) {
 """)
         writer.flush()
         plantUml.generateImage(out, FileFormatOption(FileFormat.SVG))
+        val messageYOffsets = gson.toJson(DiagramPositionsCollector.getInstance().positionsPerParticipant)
         out.flush()
         writer.println("""
         <div id="popup">
@@ -159,6 +161,8 @@ fun drawSvgOfWsd(diagram: Diagram) {
             </code>
         </div>
         <script type="text/javascript">${readResource("show-raw-msg.js")}</script>
+        <script type="text/javascript">var msgYOffsets = $messageYOffsets</script>
+        <script type="text/javascript">${readResource("scroll-to-msg.js")}</script>
     </body>
 </html>
 """)

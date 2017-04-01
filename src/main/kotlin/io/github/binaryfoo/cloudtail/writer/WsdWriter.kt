@@ -21,7 +21,7 @@ import java.io.PrintWriter
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-val HH_MM_SS = DateTimeFormatter.ofPattern("HH:mm:ss")
+val HH_MM_SS: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 private val UTC = ZoneId.of("UTC")
 
 typealias EventFilter = (CloudTrailEvent) -> Boolean
@@ -144,6 +144,7 @@ fun drawSvgOfWsd(diagram: Diagram) {
         <style>${readResource("highlightjs.default.min.css")}</style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
         <script type="text/javascript">${readResource("scroll-header.js")}</script>
+        <script type="text/javascript">${readResource("move-heads-to-top-z.js")}</script>
         <script type="text/javascript">${rawMsgsFile.readText()}</script>
     <head>
     <body>

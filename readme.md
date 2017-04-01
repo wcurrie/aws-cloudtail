@@ -39,7 +39,6 @@ Following [serverless deploy](http://docs.aws.amazon.com/lambda/latest/dg/server
 
 ### TODO
 
-* Draw plantuml participant boxes on top. Requires modifying plantuml again?
 * Navigation arrow on each participant to scroll to next/previous events?
 * Tail -f (follow mode)
 * Add auth for deployment with api gateway. Eg [IAM auth with api gateway](https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/)

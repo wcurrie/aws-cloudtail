@@ -17,7 +17,7 @@
 <body>
 <div class="container">
     <h2 class="col-sm-offset-2">Query AWS CloudTrail</h2>
-    <form action="/range" class="form-horizontal">
+    <form action="/range" class="form-horizontal" id="action-form">
         <div class="form-group">
             <label for="daterange" class="col-sm-2 control-label">Period: </label>
             <div class="col-sm-10">
@@ -33,7 +33,7 @@
         <div class="form-group">
             <label for="limit" class="col-sm-2 control-label">Max Events: </label>
             <div class="col-sm-2">
-                <input type="select" name="limit" id="limit" class="form-control" value="2000">
+                <input type="number" name="limit" id="limit" class="form-control" value="2000">
             </div>
         </div>
         <div class="form-group">
@@ -48,6 +48,7 @@
         <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
                 <button type="submit" class="btn btn-primary">Go</button>
+                <button type="submit" class="btn btn-default" id="last-n-minutes">Last 10 minutes</button>
             </div>
         </div>
     </form>
@@ -72,6 +73,10 @@
     });
 
     $timezone.val(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  });
+
+  document.getElementById("last-n-minutes").addEventListener("click", function() {
+    document.getElementById("action-form").action = "/recent";
   });
 </script>
 

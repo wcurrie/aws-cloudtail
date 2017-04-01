@@ -12,7 +12,6 @@ import spark.Spark.staticFileLocation
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 fun main(args: Array<String>) {
@@ -24,12 +23,19 @@ private val gson = Gson()
 fun defineResources() {
     staticFileLocation("/public")
 
-    get("/draw") { req, res ->
-        val from = req.queryParams("from")?.let(String::toLong) ?: (System.currentTimeMillis() - (10 * 60 * 1000))
-        val to = req.queryParams("to")?.let(String::toLong) ?: (System.currentTimeMillis())
-        val limit = req.queryParams("limit")?.let(String::toInt) ?: (2000)
+    get("/recent") { req, res ->
+        val timezone = ZoneId.of(req.queryParams("timezone"))
+        val minutes = req.queryParams("minutes").let {
+            if (it.isNullOrBlank()) 10 else it.toInt()
+        }
+        val to = System.currentTimeMillis()
+        val from = to - (minutes * 60 * 1000)
+        val limit = req.queryParams("limit").let {
+            if (it.isNullOrBlank()) 2000 else it.toInt()
+        }
         val filter = parseFilter(req.queryParams("exclude"))
-        draw(from, to, limit, res, ZoneId.of("UTC"), filter)
+
+        draw(from, to, limit, res, timezone, filter)
     }
 
     get("/range") { req, res ->
@@ -38,6 +44,7 @@ fun defineResources() {
         val limit = req.queryParams("limit").toInt()
         val (from , to) = parseDateRange(range, timezone)
         val filter = parseFilter(req.queryParams("exclude"))
+
         draw(from, to, limit, res, timezone, filter)
     }
 
@@ -56,7 +63,7 @@ private val DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM/dd h:mm a")
 private fun parseDateTime(from: String, timezone: ZoneId) = LocalDateTime.parse(from, DATETIME_FORMAT).atZone(timezone).toEpochSecond() * 1000
 
 private fun parseFilter(exclude: String?): EventFilter {
-    return if (exclude == null) {
+    return if (exclude == null || exclude.isBlank()) {
         { true }
     } else {
         val regex = Regex(exclude)

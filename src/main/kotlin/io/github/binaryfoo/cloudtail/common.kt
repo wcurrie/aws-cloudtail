@@ -13,6 +13,10 @@ val CloudTrailEvent.rawEvent: String
 val CloudTrailEvent.time: LocalDateTime
     get() = LocalDateTime.ofInstant(this.eventData.eventTime.toInstant(), ZoneId.of("UTC"))
 
+fun CloudTrailEvent.timeInZone(zoneId: ZoneId): LocalDateTime {
+    return LocalDateTime.ofInstant(this.eventData.eventTime.toInstant(), zoneId)
+}
+
 val CloudTrailEvent.userIdentity: String?
     get() {
         if (eventData.userIdentity.userName != null) {

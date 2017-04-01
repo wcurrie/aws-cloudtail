@@ -25,9 +25,15 @@
             </div>
         </div>
         <div class="form-group">
+            <label for="timezone" class="col-sm-2 control-label">TimeZone: </label>
+            <div class="col-sm-5">
+                <select name="timezone" id="timezone" class="form-control"></select>
+            </div>
+        </div>
+        <div class="form-group">
             <label for="limit" class="col-sm-2 control-label">Max Events: </label>
             <div class="col-sm-2">
-                <input type="text" name="limit" id="limit" class="form-control" value="2000">
+                <input type="select" name="limit" id="limit" class="form-control" value="2000">
             </div>
         </div>
         <div class="form-group">
@@ -53,9 +59,19 @@
       timePicker: true,
       timePickerIncrement: 5,
       locale: {
-        format: 'YYYY/MM/DD h:mm A Z'
+        format: 'YYYY/MM/DD h:mm A'
       }
     });
+  });
+
+  $.get("/timezones", function(resp) {
+    var $timezone = $("#timezone");
+    $.each(resp["zoneIds"], function(key, value) {
+      $timezone.append($("<option></option>")
+        .attr("value", value).text(value));
+    });
+
+    $timezone.val(Intl.DateTimeFormat().resolvedOptions().timeZone);
   });
 </script>
 

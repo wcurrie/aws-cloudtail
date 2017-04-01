@@ -8,7 +8,7 @@ import com.github.salomonbrys.kotson.set
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import io.github.binaryfoo.cloudtail.rawEvent
-import io.github.binaryfoo.cloudtail.time
+import io.github.binaryfoo.cloudtail.timeInZone
 import io.github.binaryfoo.cloudtail.userIdentity
 import io.reactivex.Observable
 import io.reactivex.Observer
@@ -18,13 +18,15 @@ import net.sourceforge.plantuml.FileFormatOption
 import net.sourceforge.plantuml.SourceStringReader
 import java.io.File
 import java.io.PrintWriter
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
+val HH_MM_SS = DateTimeFormatter.ofPattern("HH:mm:ss")
+private val UTC = ZoneId.of("UTC")
 
 typealias EventFilter = (CloudTrailEvent) -> Boolean
 
-data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE) {
+data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE, val displayTimeZone: ZoneId = UTC, val labelArrows: Boolean = false) {
     val events = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))
     val html   = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".html"))
 
@@ -35,14 +37,14 @@ data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE) {
     }
 }
 
-fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagram, labelArrows: Boolean = false, include: EventFilter) {
+fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagram, include: EventFilter) {
     val rawMsgsFile = diagram.events
     val rawMsgWriter = rawMsgsFile.printWriter()
     rawMsgWriter.print("var rawMsgs = [")
 
     diagram.wsdFile.printWriter().use { out ->
         out.println("@startuml")
-        events.subscribe(EventWriter(out, rawMsgWriter, labelArrows, diagram.maxEvents, include))
+        events.subscribe(EventWriter(out, rawMsgWriter, diagram, include))
         out.println("@enduml")
     }
 
@@ -52,8 +54,7 @@ fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagra
 
 private class EventWriter(val out: PrintWriter,
                           val rawMsgWriter: PrintWriter,
-                          val labelArrows: Boolean,
-                          val maxEvents: Int,
+                          val diagram: Diagram,
                           val include: EventFilter) : Observer<CloudTrailEvent> {
 
     private var stopHandle: Disposable? = null
@@ -65,10 +66,11 @@ private class EventWriter(val out: PrintWriter,
             val server = quote(event.eventData.eventSource)
             val client = quote(event.eventData.sourceIPAddress)
             val userName = event.userIdentity
+            val labelArrows = diagram.labelArrows
             val request = if (labelArrows) formatJson(event.eventData.requestParameters) else ""
             val response = if (labelArrows) formatJson(event.eventData.responseElements) else ""
             val optionalUser = userName?.let { " ($it)" } ?: ""
-            val formattedTime = TIME_FORMAT.format(event.time)
+            val formattedTime = HH_MM_SS.format(event.timeInZone(diagram.displayTimeZone))
             val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
             out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
             if (labelArrows && response != "") {
@@ -77,8 +79,8 @@ private class EventWriter(val out: PrintWriter,
             rawMsgWriter.print(event.rawEvent)
             rawMsgWriter.println(",")
             rawIndex += 1
-            if (rawIndex > maxEvents) {
-                println("Stopping because written $rawIndex > $maxEvents")
+            if (rawIndex > diagram.maxEvents) {
+                println("Stopping because written $rawIndex > ${diagram.maxEvents}")
                 stopHandle?.dispose()
             }
         }

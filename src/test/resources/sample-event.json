@@ -1,0 +1,32 @@
+{
+  "eventVersion": "1.04",
+  "userIdentity": {
+    "type": "IAMUser",
+    "principalId": "AIDASOMET3AZBJEXAMPLE",
+    "arn": "arn:aws:iam::123456789012:user/alice",
+    "accountId": "123456789012",
+    "accessKeyId": "ASIASOMEUEUKLEXAMPLE",
+    "userName": "alice",
+    "sessionContext": {
+      "attributes": {
+        "mfaAuthenticated": "false",
+        "creationDate": "2017-03-30T21:49:56Z"
+      }
+    },
+    "invokedBy": "signin.amazonaws.com"
+  },
+  "eventTime": "2017-03-30T23:00:01Z",
+  "eventSource": "cloudformation.amazonaws.com",
+  "eventName": "DescribeStacks",
+  "awsRegion": "us-west-2",
+  "sourceIPAddress": "54.1.2.3",
+  "userAgent": "signin.amazonaws.com",
+  "requestParameters": {
+    "stackName": "arn:aws:cloudformation:us-west-2:123456789012:stack/example-stack/68ac3385-913a-4128-80a0-b93e0067c713"
+  },
+  "responseElements": null,
+  "requestID": "55d714e6-863c-4870-8ca0-f42436a8be04",
+  "eventID": "253eebf2-c953-4aab-988a-fc75f67c1648",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "123456789012"
+}

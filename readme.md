@@ -39,8 +39,6 @@ Following [serverless deploy](http://docs.aws.amazon.com/lambda/latest/dg/server
 
 ### TODO
 
-* Display time labels in specified timezone rather than UTC
-* Add timezone field to index.html?
 * Draw plantuml participant boxes on top. Requires modifying plantuml again?
 * Navigation arrow on each participant to scroll to next/previous events?
 * Tail -f (follow mode)

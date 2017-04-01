@@ -1,19 +1,16 @@
 package io.github.binaryfoo.cloudtail
 
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
-import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog
 import com.amazonaws.services.logs.AWSLogs
 import com.amazonaws.services.logs.AWSLogsClientBuilder
 import com.amazonaws.services.logs.model.FilterLogEventsRequest
-import com.fasterxml.jackson.databind.ObjectMapper
-import io.github.binaryfoo.cloudtail.parser.HeaderlessCloudTrailSerializer
+import io.github.binaryfoo.cloudtail.parser.parseEvents
 import io.github.binaryfoo.cloudtail.writer.Diagram
 import io.github.binaryfoo.cloudtail.writer.EventFilter
 import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
 import java.io.File
-import java.util.*
 
 /**
  * Pull recent logs cloudtrail from cloudwatch and sequence diagram them.
@@ -46,7 +43,7 @@ private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = nul
             val response = awsLogs.filterLogEvents(request)
             println("Received ${response.events.size} events nextToken ${response.nextToken}")
             response.events.forEach { cloudWatchEvent ->
-                parseEvents(cloudWatchEvent.message).forEach { cloudTrailEvent ->
+                parseEvents(cloudWatchEvent.message, hasHeader = false).forEach { cloudTrailEvent ->
                     if (!subscriber.isDisposed) {
                         subscriber.onNext(cloudTrailEvent)
                     }
@@ -58,13 +55,3 @@ private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = nul
     }
 }
 
-private val mapper = ObjectMapper()
-private fun parseEvents(fullLogText: String): ArrayList<CloudTrailEvent> {
-    val events = ArrayList<CloudTrailEvent>()
-    val jsonParser = mapper.factory.createParser(fullLogText)
-    val serializer = HeaderlessCloudTrailSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
-    while (serializer.hasNextEvent()) {
-        events.add(serializer.nextEvent)
-    }
-    return events
-}

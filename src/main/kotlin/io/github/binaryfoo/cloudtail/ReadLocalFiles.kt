@@ -1,9 +1,7 @@
 package io.github.binaryfoo.cloudtail
 
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
-import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailLog
-import com.amazonaws.services.cloudtrail.processinglibrary.serializer.RawLogDeliveryEventSerializer
-import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.binaryfoo.cloudtail.parser.parseEvents
 import io.github.binaryfoo.cloudtail.writer.Diagram
 import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
@@ -51,17 +49,6 @@ fun processEvents(directory: String): Observable<CloudTrailEvent> {
 private fun parseEventsFrom(logFile: File): ArrayList<CloudTrailEvent> {
     GZIPInputStream(logFile.inputStream()).use { inputStream ->
         val fullLogText = inputStream.reader().readText()
-        return parseEvents(fullLogText)
+        return parseEvents(fullLogText, hasHeader = true)
     }
-}
-
-private val mapper = ObjectMapper()
-private fun parseEvents(fullLogText: String): ArrayList<CloudTrailEvent> {
-    val events = ArrayList<CloudTrailEvent>()
-    val jsonParser = mapper.factory.createParser(fullLogText)
-    val serializer = RawLogDeliveryEventSerializer(fullLogText, CloudTrailLog("", ""), jsonParser)
-    while (serializer.hasNextEvent()) {
-        events.add(serializer.nextEvent)
-    }
-    return events
 }

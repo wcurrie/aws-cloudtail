@@ -22,7 +22,7 @@ import java.time.format.DateTimeFormatter
 
 private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss")
 
-private typealias EventFilter = (CloudTrailEvent) -> Boolean
+typealias EventFilter = (CloudTrailEvent) -> Boolean
 
 data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE) {
     val events = File(wsdFile.parent, wsdFile.name.replace(".wsd", ".json"))

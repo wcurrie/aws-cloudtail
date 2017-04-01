@@ -8,6 +8,7 @@ import com.amazonaws.services.logs.model.FilterLogEventsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.binaryfoo.cloudtail.parser.HeaderlessCloudTrailSerializer
 import io.github.binaryfoo.cloudtail.writer.Diagram
+import io.github.binaryfoo.cloudtail.writer.EventFilter
 import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
@@ -22,16 +23,16 @@ fun main(args: Array<String>) {
     val wsdFile = File("tmp/recent.wsd")
     val since = System.currentTimeMillis() - (60 * 60 * 1000)
     val until = since + (60 * 60 * 1000)
-
-    drawEvents(Diagram(wsdFile), since, until)
-}
-
-fun drawEvents(diagram: Diagram, since: Long, until: Long) {
-    val awsLogs = AWSLogsClientBuilder.defaultClient()
-    val observable = eventsSince(awsLogs, since, until)
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
-    writeWebSequenceDiagram(observable, diagram) { !exclude.containsMatchIn(it.rawEvent) }
+    drawEvents(Diagram(wsdFile), since, until) { !exclude.containsMatchIn(it.rawEvent) }
+}
+
+fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter) {
+    val awsLogs = AWSLogsClientBuilder.defaultClient()
+    val observable = eventsSince(awsLogs, since, until)
+
+    writeWebSequenceDiagram(observable, diagram, include = include)
     drawSvgOfWsd(diagram)
 }
 

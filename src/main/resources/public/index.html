@@ -15,12 +15,37 @@
     </style>
 </head>
 <body>
-
-<form action="/range">
-    <label for="daterange">Period: </label> <input type="text" name="daterange" id="daterange">
-    <label for="limit">Max Count: </label> <input type="text" name="limit" id="limit" value="2000">
-    <input type="submit" value="Go">
-</form>
+<div class="container">
+    <h2 class="col-sm-offset-2">Query AWS CloudTrail</h2>
+    <form action="/range" class="form-horizontal">
+        <div class="form-group">
+            <label for="daterange" class="col-sm-2 control-label">Period: </label>
+            <div class="col-sm-10">
+                <input type="text" name="daterange" id="daterange" class="form-control">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="limit" class="col-sm-2 control-label">Max Events: </label>
+            <div class="col-sm-2">
+                <input type="text" name="limit" id="limit" class="form-control" value="2000">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="exclude" class="col-sm-2 control-label">Exclude: </label>
+            <div class="col-sm-10">
+                <input type="text" name="exclude" id="exclude" class="form-control" aria-describedby="excludeHelp" value="Datadog|codepipeline">
+                <span id="excludeHelp" class="help-block">
+                    Exclude events using a Java regular expression (optional)
+                </span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button type="submit" class="btn btn-primary">Go</button>
+            </div>
+        </div>
+    </form>
+</div>
 
 <script type="text/javascript">
   $(function() {

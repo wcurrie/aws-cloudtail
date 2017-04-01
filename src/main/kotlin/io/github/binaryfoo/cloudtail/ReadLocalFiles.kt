@@ -8,6 +8,7 @@ import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
 import java.io.File
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 import java.util.zip.GZIPInputStream
 
@@ -16,7 +17,7 @@ import java.util.zip.GZIPInputStream
  */
 fun main(args: Array<String>) {
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
-    val diagram = Diagram(File("tmp/all.wsd"))
+    val diagram = Diagram(File("tmp/all.wsd"), displayTimeZone = ZoneId.systemDefault())
 
     val start = LocalDateTime.of(2017, 3, 24, 3, 0, 0, 0)
     val end = start.plusMinutes(60)
@@ -26,6 +27,7 @@ fun main(args: Array<String>) {
         !exclude.containsMatchIn(it.rawEvent)
 //        && it.time >= start && it.time <= end
         && it.involves("cloudformation.amazonaws.com")
+        && (if (it.involves("108.171.134.161")) it.eventData.eventName == "CreateStack" || it.eventData.eventName == "DeleteStack" else true)
     }
 
     drawSvgOfWsd(diagram)

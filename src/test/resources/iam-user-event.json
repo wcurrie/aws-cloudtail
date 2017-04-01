@@ -1,0 +1,25 @@
+{
+  "eventVersion": "1.04",
+  "userIdentity": {
+    "type": "IAMUser",
+    "principalId": "AIDAIFKABCDTMZ123ABCD",
+    "arn": "arn:aws:iam::004212846312:user/actual_user",
+    "accountId": "004212846312",
+    "accessKeyId": "AKIAIRABCDKBIABCD123",
+    "userName": "actual_user"
+  },
+  "eventTime": "2017-03-24T00:10:04Z",
+  "eventSource": "cloudformation.amazonaws.com",
+  "eventName": "CreateStack",
+  "awsRegion": "us-west-2",
+  "sourceIPAddress": "101.12.13.123",
+  "userAgent": "aws-cli/1.11.66 Python/2.7.12 Linux/4.4.0-67-generic botocore/1.5.29",
+  "errorCode": "ValidationException",
+  "errorMessage": "Template format error: Unresolved resource dependencies [Cluster] in the Resources block of the template",
+  "requestParameters": null,
+  "responseElements": null,
+  "requestID": "7fc1146c-8da6-4217-991b-232cd3ad991f",
+  "eventID": "0f81451a-cefe-4d2d-adb7-73bdececb993",
+  "eventType": "AwsApiCall",
+  "recipientAccountId": "004212846312"
+}

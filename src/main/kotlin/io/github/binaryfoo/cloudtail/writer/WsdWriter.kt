@@ -144,6 +144,7 @@ fun drawSvgOfWsd(diagram: Diagram) {
         <style>${readResource("main.css")}</style>
         <style>${readResource("highlightjs.default.min.css")}</style>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+        <script type="text/javascript">${readResource("snap.svg-min.js")}</script>
         <script type="text/javascript">${readResource("scroll-header.js")}</script>
         <script type="text/javascript">${readResource("move-heads-to-top-z.js")}</script>
         <script type="text/javascript">${rawMsgsFile.readText()}</script>

@@ -43,7 +43,8 @@ Following [serverless deploy](http://docs.aws.amazon.com/lambda/latest/dg/server
 
 ### TODO
 
-* Navigation arrow on each participant to scroll to next/previous events?
 * Tail -f (follow mode)
+* Show errorMessage text for failed requests (below line, as note?)
 * Add auth for deployment with api gateway. Eg [IAM auth with api gateway](https://aws.amazon.com/premiumsupport/knowledge-center/iam-authentication-api-gateway/)
-* Handle api gateway max response size 10mb [limits](http://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html). Need 302 redirection to s3 object? 
+* Handle api gateway max response size 10mb [limits](http://docs.aws.amazon.com/apigateway/latest/developerguide/limits.html). Need 302 redirection to s3 object?
+* Scroll from navigation arrow on each participant line should be smooth/animated

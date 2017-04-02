@@ -13,8 +13,16 @@ class ScrubberKtTest {
     private val gson = Gson()
 
     @Test
-    fun scrubsAwsAccountId() {
+    fun scrubsAwsAccountId_IAMUser() {
         val clean = scrubEvent(readResource("iam-user-event.json"))
+
+        assertThat(clean).doesNotContain("004212846312")
+        assertThat(fromJson(clean)["userIdentity"]["accountId"].asString).isEqualTo("123456789012")
+    }
+
+    @Test
+    fun scrubsAwsAccountId_AssumedROle() {
+        val clean = scrubEvent(readResource("assumed-role-event.json"))
 
         assertThat(clean).doesNotContain("004212846312")
         assertThat(fromJson(clean)["userIdentity"]["accountId"].asString).isEqualTo("123456789012")

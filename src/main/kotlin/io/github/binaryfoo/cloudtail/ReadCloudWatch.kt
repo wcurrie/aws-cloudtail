@@ -11,27 +11,35 @@ import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
 import java.io.File
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.util.concurrent.TimeUnit
 
 /**
  * Pull recent logs cloudtrail from cloudwatch and sequence diagram them.
  * Requires cloudtrail to be forwarding logs to cloudwatch.
  */
 fun main(args: Array<String>) {
-    val wsdFile = File("tmp/recent.wsd")
-    val since = System.currentTimeMillis() - (60 * 60 * 1000)
-    val until = since + (60 * 60 * 1000)
+    val diagram = Diagram(File("tmp/recent.wsd"), displayTimeZone = ZoneId.systemDefault())
+    val until = System.currentTimeMillis()
+    val since = until - TimeUnit.HOURS.toMillis(3)
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
-    drawEvents(Diagram(wsdFile), since, until) { !exclude.containsMatchIn(it.rawEvent) }
+    drawEvents(diagram, since, until) { !exclude.containsMatchIn(it.rawEvent) }
 }
 
 fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter) {
     val awsLogs = AWSLogsClientBuilder.defaultClient()
     val observable = eventsSince(awsLogs, since, until)
 
+    println("Querying from ${asUTC(since)} to ${asUTC(until)}")
+
     writeWebSequenceDiagram(observable, diagram, include = include)
     drawSvgOfWsd(diagram)
 }
+
+private fun asUTC(since: Long) = LocalDateTime.ofEpochSecond(since / 1000, 0, ZoneOffset.UTC)
 
 private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->

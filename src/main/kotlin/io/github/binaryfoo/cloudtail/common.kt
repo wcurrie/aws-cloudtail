@@ -2,6 +2,9 @@ package io.github.binaryfoo.cloudtail
 
 import com.amazonaws.services.cloudtrail.processinglibrary.model.CloudTrailEvent
 import com.amazonaws.services.cloudtrail.processinglibrary.model.LogDeliveryInfo
+import com.github.salomonbrys.kotson.fromJson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -16,6 +19,13 @@ val CloudTrailEvent.time: LocalDateTime
 fun CloudTrailEvent.timeInZone(zoneId: ZoneId): LocalDateTime {
     return LocalDateTime.ofInstant(this.eventData.eventTime.toInstant(), zoneId)
 }
+
+private val gson = GsonBuilder().setPrettyPrinting().create()
+val CloudTrailEvent.prettyJson: String
+    get() = gson.toJson(rawJson)
+
+val CloudTrailEvent.rawJson: JsonObject
+    get() = gson.fromJson<JsonObject>(rawEvent)
 
 val CloudTrailEvent.userIdentity: String?
     get() {

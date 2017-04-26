@@ -31,11 +31,11 @@ fun main(args: Array<String>) {
 
 fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter) {
     val awsLogs = AWSLogsClientBuilder.defaultClient()
-    val observable = eventsViaCloudWatchSince(awsLogs, since, until)
+    val observable = eventsViaCloudWatchSince(awsLogs, since, until).filter(include)
 
     println("Querying from ${asUTC(since)} to ${asUTC(until)}")
 
-    writeWebSequenceDiagram(observable, diagram, include = include)
+    writeWebSequenceDiagram(observable, diagram)
     drawSvgOfWsd(diagram)
 }
 

@@ -23,12 +23,12 @@ fun main(args: Array<String>) {
     val end = start.plusMinutes(60)
     println("From $start until $end")
 
-    writeWebSequenceDiagram(processEvents("tmp"), diagram) {
+    val events = processEvents("tmp").filter {
         !exclude.containsMatchIn(it.rawEvent)
-        && it.eventData.userAgent != "signin.amazonaws.com"
+                && it.eventData.userAgent != "signin.amazonaws.com"
 //        && it.time >= start && it.time <= end
     }
-
+    writeWebSequenceDiagram(events, diagram)
     drawSvgOfWsd(diagram)
 }
 

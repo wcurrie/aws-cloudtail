@@ -38,52 +38,55 @@ data class Diagram(val wsdFile: File, val maxEvents: Int = Int.MAX_VALUE, val di
     }
 }
 
-fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagram, include: EventFilter) {
+fun writeWebSequenceDiagram(events: Observable<CloudTrailEvent>, diagram: Diagram) {
     val rawMsgsFile = diagram.events
-    val rawMsgWriter = rawMsgsFile.printWriter()
-    rawMsgWriter.print("var rawMsgs = [")
+    val tappedEvents = withRawEventsSaved(events, rawMsgsFile)
 
     diagram.wsdFile.printWriter().use { out ->
         out.println("@startuml")
-        events.subscribe(EventWriter(out, rawMsgWriter, diagram, include))
+        tappedEvents.subscribe(EventWriter(out, diagram))
         out.println("@enduml")
     }
+}
 
-    rawMsgWriter.println("];")
-    rawMsgWriter.close()
+fun withRawEventsSaved(events: Observable<CloudTrailEvent>, destination: File): Observable<CloudTrailEvent> {
+    val rawMsgWriter = destination.printWriter()
+    rawMsgWriter.print("var rawMsgs = [")
+    return events.map { e ->
+        rawMsgWriter.print(e.rawEvent)
+        rawMsgWriter.println(",")
+        e
+    }.doOnComplete {
+        rawMsgWriter.println("];")
+        rawMsgWriter.close()
+    }
 }
 
 private class EventWriter(val out: PrintWriter,
-                          val rawMsgWriter: PrintWriter,
-                          val diagram: Diagram,
-                          val include: EventFilter) : Observer<CloudTrailEvent> {
+                          val diagram: Diagram) : Observer<CloudTrailEvent> {
 
     private var stopHandle: Disposable? = null
     private var rawIndex = 0
 
     override fun onNext(event: CloudTrailEvent) {
-        if (include(event)) {
-            val eventName = event.eventData.eventName
-            val server = quote(event.eventData.eventSource)
-            val client = quote(event.eventData.sourceIPAddress)
-            val userName = event.userIdentity
-            val labelArrows = diagram.labelArrows
-            val request = if (labelArrows) formatJson(event.eventData.requestParameters) else ""
-            val response = if (labelArrows) formatJson(event.eventData.responseElements) else ""
-            val optionalUser = userName?.let { " ($it)" } ?: ""
-            val formattedTime = HH_MM_SS.format(event.timeInZone(diagram.displayTimeZone))
-            val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
-            out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
-            if (labelArrows && response != "") {
-                out.println("$client <-- $server: $response")
-            }
-            rawMsgWriter.print(event.rawEvent)
-            rawMsgWriter.println(",")
-            rawIndex += 1
-            if (rawIndex > diagram.maxEvents) {
-                println("Stopping because written $rawIndex > ${diagram.maxEvents}")
-                stopHandle?.dispose()
-            }
+        val eventName = event.eventData.eventName
+        val server = quote(event.eventData.eventSource)
+        val client = quote(event.eventData.sourceIPAddress)
+        val userName = event.userIdentity
+        val labelArrows = diagram.labelArrows
+        val request = if (labelArrows) formatJson(event.eventData.requestParameters) else ""
+        val response = if (labelArrows) formatJson(event.eventData.responseElements) else ""
+        val optionalUser = userName?.let { " ($it)" } ?: ""
+        val formattedTime = HH_MM_SS.format(event.timeInZone(diagram.displayTimeZone))
+        val linkToRawMsg = "[[javascript:showRawMsg($rawIndex) $formattedTime]]"
+        out.println("$client -> $server: $linkToRawMsg $eventName$optionalUser $request")
+        if (labelArrows && response != "") {
+            out.println("$client <-- $server: $response")
+        }
+        rawIndex += 1
+        if (rawIndex > diagram.maxEvents) {
+            println("Stopping because written $rawIndex > ${diagram.maxEvents}")
+            stopHandle?.dispose()
         }
     }
 

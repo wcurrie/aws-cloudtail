@@ -29,4 +29,5 @@ fun main(args: Array<String>) {
     }
     val totalBytes = response.objectSummaries.map { it.size }.sum()
     println("size $totalBytes")
+    pool.shutdown()
 }

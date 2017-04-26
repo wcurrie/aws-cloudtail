@@ -47,7 +47,8 @@ val CloudTrailEvent.invokerArn: String
     get() = when (eventData.userIdentity.identityType) {
             "AssumedRole" -> eventData.userIdentity.sessionContext.sessionIssuer.arn
             "IAMUser" -> eventData.userIdentity.arn
-            "AWSService" -> requestParametersJson["roleArn"].asString // AssumeRole
+            "AWSService" -> requestParametersJson["roleArn"].asString // AWS service calling AssumeRole
+            "AWSAccount" -> requestParametersJson["roleArn"].asString // Another account calling AssumeRole
             else -> throw Exception("Unknown invoker arn in: $prettyJson")
     }
 

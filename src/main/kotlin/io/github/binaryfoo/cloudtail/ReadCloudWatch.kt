@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 
 fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter) {
     val awsLogs = AWSLogsClientBuilder.defaultClient()
-    val observable = eventsSince(awsLogs, since, until)
+    val observable = eventsViaCloudWatchSince(awsLogs, since, until)
 
     println("Querying from ${asUTC(since)} to ${asUTC(until)}")
 
@@ -41,7 +41,7 @@ fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter)
 
 private fun asUTC(since: Long) = LocalDateTime.ofEpochSecond(since / 1000, 0, ZoneOffset.UTC)
 
-private fun eventsSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
+fun eventsViaCloudWatchSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->
         val request = FilterLogEventsRequest()
                 .withLogGroupName("CloudTrail/logs")

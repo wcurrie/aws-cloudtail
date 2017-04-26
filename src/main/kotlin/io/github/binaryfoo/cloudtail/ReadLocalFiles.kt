@@ -25,9 +25,8 @@ fun main(args: Array<String>) {
 
     writeWebSequenceDiagram(processEvents("tmp"), diagram) {
         !exclude.containsMatchIn(it.rawEvent)
+        && it.eventData.userAgent != "signin.amazonaws.com"
 //        && it.time >= start && it.time <= end
-        && it.involves("cloudformation.amazonaws.com")
-        && (if (it.involves("108.171.134.161")) it.eventData.eventName == "CreateStack" || it.eventData.eventName == "DeleteStack" else true)
     }
 
     drawSvgOfWsd(diagram)

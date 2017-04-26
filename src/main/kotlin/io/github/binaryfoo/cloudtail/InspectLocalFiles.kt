@@ -1,24 +1,27 @@
 package io.github.binaryfoo.cloudtail
 
-import com.github.salomonbrys.kotson.fromJson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonObject
 import io.github.binaryfoo.cloudtail.writer.readRawMsgsJson
 import java.io.File
 
 fun main(args: Array<String>) {
-    val gson = GsonBuilder().setPrettyPrinting().create()
+
+    var lastArn: String = ""
+
+    // Finds IAM permissions used by each role in recent events
 
     readRawMsgsJson(File("tmp/recent.json"))
-            .groupBy { it.eventData.userIdentity.identityType + "-" + it.eventData.eventName }
-            .flatMap { g -> g.toList().toObservable().filter { it.size < 5 }.map { Pair(g.key, it) } }
-            .forEach {
-                println(it.first)
-                it.second.forEach { e ->
-                    val json = gson.fromJson<JsonObject>(e.rawEvent)
-                    println(gson.toJson(json))
+            .groupBy { it.invokerArn }
+            .flatMap { byArn -> byArn.groupBy { it.eventData.eventName } }
+            .forEach { g ->
+                g.toList().toObservable().forEach { g ->
+                    val event = g[0]
+                    if (lastArn != event.invokerArn) {
+                        println(event.invokerArn)
+                        lastArn = event.invokerArn
+                    }
+                    val service = event.eventData.eventSource.replace(Regex("\\..*"), "")
+                    println("  " + service + ":" + event.eventData.eventName + " " + g.size)
                 }
-                println()
             }
 
 }

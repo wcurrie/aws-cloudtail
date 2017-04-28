@@ -29,15 +29,14 @@ val CloudTrailEvent.rawJson: JsonObject
 
 val CloudTrailEvent.userIdentity: String?
     get() {
-        if (eventData.userIdentity.userName != null) {
-            return eventData.userIdentity.userName
+        return if (eventData.userIdentity.userName != null) {
+            eventData.userIdentity.userName
+        } else {
+            invokerArn.let {
+                val slash = it.indexOf('/')
+                if (slash != -1) it.substring(slash + 1) else it
+            }
         }
-        if (eventData.userIdentity.principalId != null) {
-            // drop prefix from AROABLAHBLAHMEXAMPLE:AWSCodeBuild
-            val colonIndex = eventData.userIdentity.principalId.indexOf(':')
-            return if (colonIndex != -1) eventData.userIdentity.principalId.substring(colonIndex + 1) else eventData.userIdentity.principalId
-        }
-        return null
     }
 
 val CloudTrailEvent.requestParametersJson: JsonObject
@@ -54,6 +53,10 @@ val CloudTrailEvent.invokerArn: String
 
 fun CloudTrailEvent.involves(actor: String): Boolean {
     return eventData.sourceIPAddress == actor || eventData.eventSource == actor
+}
+
+fun compareEventsByTimestamp(e1: CloudTrailEvent, e2: CloudTrailEvent): Int {
+    return e1.eventData.eventTime.compareTo(e2.eventData.eventTime)
 }
 
 fun propertiesFrom(fileName: String): Properties {

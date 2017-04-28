@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 fun main(args: Array<String>) {
     val diagram = Diagram(File("tmp/recent.wsd"), displayTimeZone = ZoneId.systemDefault())
     val until = System.currentTimeMillis()
-    val since = until - TimeUnit.HOURS.toMillis(3)
+    val since = until - TimeUnit.MINUTES.toMillis(30)
     val exclude = Regex(propertiesFrom("config.properties").getProperty("exclusion_regex"))
 
     drawEvents(diagram, since, until) { !exclude.containsMatchIn(it.rawEvent) }
@@ -31,7 +31,9 @@ fun main(args: Array<String>) {
 
 fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter) {
     val awsLogs = AWSLogsClientBuilder.defaultClient()
-    val observable = eventsViaCloudWatchSince(awsLogs, since, until).filter(include)
+    val observable = eventsViaCloudWatchSince(awsLogs, since, until)
+            .filter(include)
+            .sorted(::compareEventsByTimestamp)
 
     println("Querying from ${asUTC(since)} to ${asUTC(until)}")
 

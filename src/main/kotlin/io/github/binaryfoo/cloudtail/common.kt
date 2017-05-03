@@ -8,6 +8,7 @@ import com.google.gson.JsonObject
 import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.util.*
 
 val CloudTrailEvent.rawEvent: String
@@ -70,3 +71,5 @@ fun propertiesFrom(fileName: String): Properties {
         Properties().apply { load(reader) }
     }
 }
+
+fun Long.asUTC() = LocalDateTime.ofEpochSecond(this / 1000, 0, ZoneOffset.UTC)

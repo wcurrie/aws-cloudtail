@@ -11,9 +11,7 @@ import io.github.binaryfoo.cloudtail.writer.drawSvgOfWsd
 import io.github.binaryfoo.cloudtail.writer.writeWebSequenceDiagram
 import io.reactivex.Observable
 import java.io.File
-import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.util.concurrent.TimeUnit
 
 /**
@@ -35,13 +33,11 @@ fun drawEvents(diagram: Diagram, since: Long, until: Long, include: EventFilter)
             .filter(include)
             .sorted(::compareEventsByTimestamp)
 
-    println("Querying from ${asUTC(since)} to ${asUTC(until)}")
+    println("Querying from ${since.asUTC()} to ${until.asUTC()}")
 
     writeWebSequenceDiagram(observable, diagram)
     drawSvgOfWsd(diagram)
 }
-
-private fun asUTC(since: Long) = LocalDateTime.ofEpochSecond(since / 1000, 0, ZoneOffset.UTC)
 
 fun eventsViaCloudWatchSince(awsLogs: AWSLogs, fromTime: Long, untilTime: Long? = null): Observable<CloudTrailEvent> {
     return Observable.create { subscriber ->

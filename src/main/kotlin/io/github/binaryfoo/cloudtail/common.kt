@@ -44,12 +44,21 @@ val CloudTrailEvent.requestParametersJson: JsonObject
     get() = gson.fromJson(eventData.requestParameters)
 
 val CloudTrailEvent.invokerArn: String
-    get() = when (eventData.userIdentity.identityType) {
-            "AssumedRole" -> eventData.userIdentity.sessionContext.sessionIssuer.arn
+    get() {
+        val identityType = eventData.userIdentity?.identityType ?: eventData.userIdentity.get("type")
+        return when (identityType) {
+            "AssumedRole" -> eventData.userIdentity?.sessionContext?.sessionIssuer?.arn ?: eventData.userIdentity.arn
             "IAMUser" -> eventData.userIdentity.arn
-            "AWSService" -> requestParametersJson["roleArn"].asString // AWS service calling AssumeRole
-            "AWSAccount" -> requestParametersJson["roleArn"].asString // Another account calling AssumeRole
+            "AWSService" -> {
+                // AWS service calling AssumeRole
+                requestParametersJson["roleArn"]?.asString ?: eventData.userIdentity.invokedBy
+            }
+            "AWSAccount" -> {
+                // Another account calling AssumeRole or s3 data event
+                requestParametersJson["roleArn"]?.asString ?: eventData.userIdentity.accountId + "/" + eventData.userIdentity.principalId
+            }
             else -> throw Exception("Unknown invoker arn in: $prettyJson")
+        }
     }
 
 fun CloudTrailEvent.involves(actor: String): Boolean {
